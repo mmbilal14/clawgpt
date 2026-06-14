@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawGPT — AI Chatbot for Your Business</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #fff;
+    min-height: 100vh;
+  }
+
+  /* NAVBAR */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 40px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #7c3aed, #a855f7, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .nav-btn {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  .nav-btn:hover { transform: scale(1.05); opacity: 0.9; }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(124,58,237,0.2);
+    border: 1px solid rgba(124,58,237,0.4);
+    color: #a855f7;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, #7c3aed, #a855f7, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 18px;
+    color: #94a3b8;
+    max-width: 550px;
+    margin: 0 auto 36px;
+    line-height: 1.7;
+  }
+  .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 30px rgba(124,58,237,0.4);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(124,58,237,0.6); }
+  .btn-secondary {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 14px 32px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-secondary:hover { border-color: #a855f7; color: #a855f7; }
+
+  /* CHAT DEMO */
+  .chat-section {
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 20px 20px 60px;
+  }
+  .chat-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  }
+  .chat-header {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chat-avatar {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .chat-header-info h3 { font-size: 15px; font-weight: 700; }
+  .chat-header-info p { font-size: 12px; opacity: 0.8; }
+  .online-dot {
+    width: 8px; height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .chat-messages {
+    padding: 20px;
+    height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scroll-behavior: smooth;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .msg { display: flex; gap: 10px; align-items: flex-end; }
+  .msg.user { flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+  }
+  .msg.user .msg-avatar { background: linear-gradient(135deg, #06b6d4, #0ea5e9); }
+  .msg-bubble {
+    max-width: 75%;
+    padding: 11px 15px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .msg.bot .msg-bubble {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-bottom-left-radius: 4px;
+    color: #e2e8f0;
+  }
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-bottom-right-radius: 4px;
+    color: #fff;
+  }
+  .typing-indicator {
+    display: flex; gap: 5px; align-items: center; padding: 8px 0;
+  }
+  .typing-dot {
+    width: 7px; height: 7px;
+    background: #a855f7;
+    border-radius: 50%;
+    animation: typing 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+  .chat-input-area {
+    padding: 14px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(255,255,255,0.02);
+  }
+  #userInput {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 25px;
+    padding: 11px 18px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  #userInput:focus { border-color: #7c3aed; }
+  #userInput::placeholder { color: #64748b; }
+  #sendBtn {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border: none;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 17px;
+    transition: all 0.3s;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #sendBtn:hover { transform: scale(1.1); }
+  #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* FEATURES */
+  .features {
+    padding: 60px 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .features h2 { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+  .features h2 span {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .features p.sub { color: #94a3b8; margin-bottom: 48px; font-size: 16px; }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px;
+    text-align: left;
+    transition: all 0.3s;
+  }
+  .feature-card:hover {
+    border-color: rgba(124,58,237,0.4);
+    background: rgba(124,58,237,0.05);
+    transform: translateY(-4px);
+  }
+  .feature-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #7c3aed22, #a855f722);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+  .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .feature-card p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+
+  /* PRICING */
+  .pricing {
+    padding: 60px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .pricing h2 { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+  .pricing h2 span {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .pricing p.sub { color: #94a3b8; margin-bottom: 40px; }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
+  .price-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 32px 24px;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .price-card.popular {
+    border-color: #7c3aed;
+    background: rgba(124,58,237,0.08);
+  }
+  .popular-badge {
+    position: absolute;
+    top: -12px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .price-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .price-amount { font-size: 42px; font-weight: 800; margin: 12px 0; }
+  .price-amount span { font-size: 16px; color: #94a3b8; font-weight: 400; }
+  .price-features { list-style: none; margin: 20px 0; text-align: left; }
+  .price-features li { padding: 7px 0; color: #94a3b8; font-size: 14px; }
+  .price-features li::before { content: "✓ "; color: #a855f7; font-weight: 700; }
+  .price-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s;
+    margin-top: 8px;
+  }
+  .price-btn.outline {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+  }
+  .price-btn.outline:hover { border-color: #a855f7; color: #a855f7; }
+  .price-btn.filled {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+  }
+  .price-btn.filled:hover { opacity: 0.9; transform: scale(1.02); }
+
+  /* API KEY SETUP */
+  .api-setup {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+  }
+  .api-setup.show { display: flex; }
+  .api-modal {
+    background: #13131a;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 36px;
+    max-width: 440px;
+    width: 90%;
+  }
+  .api-modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .api-modal p { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+  .api-modal input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 14px;
+  }
+  .api-modal input:focus { border-color: #7c3aed; }
+  .api-modal button {
+    width: 100%;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    border: none;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: #475569;
+    font-size: 14px;
+  }
+  footer span {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+  }
+
+  @media(max-width:600px) {
+    nav { padding: 14px 20px; }
+    .hero { padding: 50px 16px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- API KEY MODAL -->
+<div class="api-setup" id="apiModal">
+  <div class="api-modal">
+    <h3>🔑 Enter Your API Key</h3>
+    <p>Enter your Google Gemini API key to activate the chatbot. Your key is stored only in your browser.</p>
+    <input type="password" id="apiKeyInput" placeholder="AIza...your gemini api key" />
+    <button onclick="saveApiKey()">Activate Chatbot ✨</button>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo">⚡ ClawGPT</div>
+  <button class="nav-btn" onclick="document.getElementById('chat-demo').scrollIntoView({behavior:'smooth'})">Try Demo →</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">✨ AI-Powered Business Chatbot</div>
+  <h1>Your Business Deserves<br><span>24/7 AI Support</span></h1>
+  <p>ClawGPT handles customer queries automatically — so you can focus on growing your business.</p>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="document.getElementById('chat-demo').scrollIntoView({behavior:'smooth'})">Try Free Demo 🚀</button>
+    <button class="btn-secondary" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">View Pricing</button>
+  </div>
+</section>
+
+<!-- CHAT DEMO -->
+<section class="chat-section" id="chat-demo">
+  <div class="chat-box">
+    <div class="chat-header">
+      <div class="chat-avatar">🤖</div>
+      <div class="chat-header-info">
+        <h3>ClawGPT Assistant</h3>
+        <p><span class="online-dot"></span>Online — Ready to help</p>
+      </div>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg bot">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble">Hello! 👋 I'm ClawGPT — your AI business assistant. Ask me anything!</div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="userInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendMessage()" />
+      <button id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <h2>Why Choose <span>ClawGPT?</span></h2>
+  <p class="sub">Everything your business needs in one smart chatbot</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Instant Responses</h3>
+      <p>Reply to customer queries in milliseconds — no waiting, no delays, 24/7 availability.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <h3>Powered by Gemini AI</h3>
+      <p>Built on Google's latest Gemini model — understands context and gives smart, helpful answers.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>Works Everywhere</h3>
+      <p>Embed on any website, mobile-friendly design that works perfectly on all devices.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <h3>Custom Training</h3>
+      <p>Train the bot with your business info — products, FAQs, pricing — all customizable.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Secure & Private</h3>
+      <p>Your data stays safe. No third-party sharing, full privacy for you and your customers.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Easy Setup</h3>
+      <p>Get your chatbot live in minutes — no coding required, simple one-click integration.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <h2>Simple <span>Pricing</span></h2>
+  <p class="sub">Affordable plans for every business size</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <h3>Starter</h3>
+      <div class="price-amount">Rs. 3,000<span>/mo</span></div>
+      <ul class="price-features">
+        <li>1 Chatbot</li>
+        <li>500 messages/month</li>
+        <li>Basic customization</li>
+        <li>Email support</li>
+      </ul>
+      <button class="price-btn outline" onclick="contactUs()">Get Started</button>
+    </div>
+    <div class="price-card popular">
+      <div class="popular-badge">Most Popular</div>
+      <h3>Professional</h3>
+      <div class="price-amount">Rs. 6,000<span>/mo</span></div>
+      <ul class="price-features">
+        <li>3 Chatbots</li>
+        <li>Unlimited messages</li>
+        <li>Full customization</li>
+        <li>Priority support</li>
+        <li>Custom training</li>
+      </ul>
+      <button class="price-btn filled" onclick="contactUs()">Get Started</button>
+    </div>
+    <div class="price-card">
+      <h3>Enterprise</h3>
+      <div class="price-amount">Custom<span></span></div>
+      <ul class="price-features">
+        <li>Unlimited chatbots</li>
+        <li>Unlimited messages</li>
+        <li>White-label solution</li>
+        <li>24/7 dedicated support</li>
+        <li>Custom integrations</li>
+      </ul>
+      <button class="price-btn outline" onclick="contactUs()">Contact Us</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Built with ❤️ by <span>ClawGPT</span> — Empowering businesses with AI</p>
+  <p style="margin-top:8px">© 2026 clawgpt.space — All rights reserved</p>
+</footer>
+
+<script>
+  const SYSTEM_PROMPT = `You are ClawGPT, a friendly and professional AI business assistant for clawgpt.space. 
+You help businesses automate their customer support. 
+Be concise, helpful, and professional. 
+Answer in the same language the user writes in.
+If asked about pricing, mention the plans: Starter (Rs. 3,000/mo), Professional (Rs. 6,000/mo), Enterprise (custom).
+If asked about contact, say: "Please WhatsApp us at your number or email us at contact@clawgpt.space"`;
+
+  let API_KEY = localStorage.getItem('gemini_api_key') || '';
+  let isTyping = false;
+
+  function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) { alert('Please enter your API key!'); return; }
+    API_KEY = key;
+    localStorage.setItem('gemini_api_key', key);
+    document.getElementById('apiModal').classList.remove('show');
+    addMessage('bot', '✅ API key saved! I\'m now powered by Gemini AI. How can I help you?');
+  }
+
+  function contactUs() {
+    alert('Contact us on WhatsApp for setup!\n\nWe will get your chatbot live within 24 hours.');
+  }
+
+  function addMessage(role, text) {
+    const msgs = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    div.innerHTML = `
+      <div class="msg-avatar">${role === 'bot' ? '🤖' : '👤'}</div>
+      <div class="msg-bubble">${text}</div>
+    `;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showTyping() {
+    const msgs = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'msg bot';
+    div.id = 'typingIndicator';
+    div.innerHTML = `
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-bubble">
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    `;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  }
+
+  async function sendMessage() {
+    if (isTyping) return;
+    const input = document.getElementById('userInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    if (!API_KEY) {
+      document.getElementById('apiModal').classList.add('show');
+      return;
+    }
+
+    input.value = '';
+    addMessage('user', text);
+    isTyping = true;
+    document.getElementById('sendBtn').disabled = true;
+    showTyping();
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: SYSTEM_PROMPT + '\n\nUser: ' + text }] }]
+        })
+      });
+      const data = await res.json();
+      removeTyping();
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't get a response. Please try again.";
+      addMessage('bot', reply.replace(/\n/g, '<br>'));
+    } catch (e) {
+      removeTyping();
+      addMessage('bot', '⚠️ Connection error. Please check your API key and try again.');
+    }
+
+    isTyping = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+
+  // Show API modal if no key
+  window.onload = () => {
+    if (!API_KEY) {
+      setTimeout(() => document.getElementById('apiModal').classList.add('show'), 1500);
+    }
+  };
+</script>
+</body>
+</html>
